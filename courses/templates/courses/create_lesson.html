@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Lesson</title>
+    <script src="/static/ckeditor/ckeditor.js"></script>
+</head>
+<body>
+    <h1>Create Lesson</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Create Lesson</button>
+    </form>
+    <a href="{% url 'lesson_list' %}">Back to Lessons</a>
+</body>
+</html>

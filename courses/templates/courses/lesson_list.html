@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lessons</title>
+</head>
+<body>
+    <h1>Lessons</h1>
+    <a href="{% url 'create_lesson' %}">Add Lesson</a>
+    <ul>
+        {% for lesson in lessons %}
+            <li>{{ lesson.title }} (Course: {{ lesson.course.title }})</li>
+        {% empty %}
+            <li>No lessons available.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
