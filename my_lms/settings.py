@@ -89,3 +89,6 @@ MESSAGE_TAGS = {
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
 }
+
+LOGIN_URL = 'login'  # Redirects unauthenticated users to login
+LOGIN_REDIRECT_URL = 'dashboard'  # Default redirect after login

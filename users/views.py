@@ -2,6 +2,12 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
+from django.contrib.auth import logout
+
+def logout_view(request):
+    logout(request)
+    messages.success(request, 'Logged out successfully!')
+    return redirect('landing')
 
 def login_view(request):
     if request.method == 'POST':
@@ -11,7 +17,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, 'Logged in successfully!')
-            return redirect('lesson_list')  # We’ll fix this later
+            return redirect('dashboard')  # Updated to redirect to dashboard
         else:
             messages.error(request, 'Invalid username or password.')
     return render(request, 'users/login.html')

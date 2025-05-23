@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, Admin {{ user.username }}!</h1>
+    <p>Manage your LMS here.</p>
+    <a href="{% url 'admin:index' %}">Go to Admin Panel</a>
+    <a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>

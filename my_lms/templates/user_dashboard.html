@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ user.username }}!</h1>
+    <p>Explore your courses and lessons.</p>
+    <a href="{% url 'lesson_list' %}">View Lessons</a>
+    <a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>
