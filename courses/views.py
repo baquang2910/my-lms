@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from .models import Lesson, Course
-from .forms import LessonForm, CourseForm  # Assuming CourseForm exists or will be created
+from .forms import LessonForm, CourseForm
 
 @login_required
 def create_lesson(request):
@@ -38,7 +38,9 @@ def create_course(request):
     if request.method == 'POST':
         form = CourseForm(request.POST)
         if form.is_valid():
-            course = form.save()
+            course = form.save(commit=False)  # Create instance without saving
+            course.instructor = request.user  # Set instructor to current user
+            course.save()  # Save the course
             messages.success(request, f'Course "{course.title}" created successfully!')
             return redirect('create_lesson')  # Redirect back to create_lesson
         else:

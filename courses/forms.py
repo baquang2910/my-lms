@@ -11,4 +11,4 @@ class LessonForm(forms.ModelForm):
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['title', 'description']  # Adjust based on your Course model
+        fields = ['title', 'description']  # 'instructor' is excluded
