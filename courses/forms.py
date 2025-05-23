@@ -7,3 +7,8 @@ class LessonForm(forms.ModelForm):
     class Meta:
         model = Lesson
         fields = ['title', 'content', 'file', 'course']
+
+class CourseForm(forms.ModelForm):
+    class Meta:
+        model = Course
+        fields = ['title', 'description']  # Adjust based on your Course model

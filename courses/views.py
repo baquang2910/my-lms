@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Lesson, Course  # Assuming Course model exists
-from .forms import LessonForm
 from django.contrib import messages
 from django.core.paginator import Paginator
+from .models import Lesson, Course
+from .forms import LessonForm, CourseForm  # Assuming CourseForm exists or will be created
 
 @login_required
 def create_lesson(request):
@@ -11,7 +11,7 @@ def create_lesson(request):
     courses = Course.objects.all()
     if not courses:
         messages.error(request, 'No courses available. Please create a course first.')
-        return redirect('create_course')  # Redirect to a view for creating courses
+        return redirect('create_course')  # Redirect to create_course view
 
     if request.method == 'POST':
         form = LessonForm(request.POST, request.FILES)
@@ -32,3 +32,17 @@ def lesson_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'courses/lesson_list.html', {'page_obj': page_obj, 'paginator': paginator})
+
+@login_required
+def create_course(request):
+    if request.method == 'POST':
+        form = CourseForm(request.POST)
+        if form.is_valid():
+            course = form.save()
+            messages.success(request, f'Course "{course.title}" created successfully!')
+            return redirect('create_lesson')  # Redirect back to create_lesson
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = CourseForm()
+    return render(request, 'courses/create_course.html', {'form': form})
