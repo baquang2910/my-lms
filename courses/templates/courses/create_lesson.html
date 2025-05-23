@@ -1,15 +1,29 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Lesson</title>
-    <script src="/static/ckeditor/ckeditor.js"></script>
+    <script src="{% static 'ckeditor/ckeditor.js' %}"></script>
+    <style>
+        .form-group { margin-bottom: 15px; }
+        .error { color: red; font-size: 0.9em; }
+    </style>
 </head>
 <body>
     <h1>Create Lesson</h1>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <span class="error">{{ field.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+        {% endfor %}
         <button type="submit">Create Lesson</button>
     </form>
     <a href="{% url 'lesson_list' %}">Back to Lessons</a>
