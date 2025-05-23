@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 import logging
@@ -38,3 +38,17 @@ def register_view(request):
     else:
         form = UserCreationForm()
     return render(request, 'users/register.html', {'form': form})
+
+def logout_view(request):
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            username = request.user.username
+            logout(request)
+            messages.success(request, 'Logged out successfully!')
+            logger.info("User %s logged out", username)
+        else:
+            messages.info(request, 'You are already logged out.')
+        return redirect('landing')
+    else:
+        messages.error(request, 'Please use the logout button to log out.')
+        return redirect('dashboard')
