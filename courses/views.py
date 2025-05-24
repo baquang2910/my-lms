@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -48,3 +48,18 @@ def create_course(request):
     else:
         form = CourseForm()
     return render(request, 'courses/create_course.html', {'form': form})
+
+@login_required
+def edit_lesson(request, lesson_id):
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    if request.method == 'POST':
+        form = LessonForm(request.POST, request.FILES, instance=lesson)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Lesson "{lesson.title}" updated successfully!')
+            return redirect('lesson_list')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = LessonForm(instance=lesson)
+    return render(request, 'courses/edit_lesson.html', {'form': form})
