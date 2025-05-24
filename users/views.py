@@ -9,7 +9,9 @@ logger = logging.getLogger(__name__)
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        if request.user.is_superuser:
+            return redirect('admin_dashboard')
+        return redirect('user_dashboard')
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
@@ -17,8 +19,10 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, 'Logged in successfully!')
-            logger.info("User %s authenticated, redirecting to dashboard", username)
-            return redirect('dashboard')
+            logger.info("User %s authenticated", username)
+            if user.is_superuser:
+                return redirect('admin_dashboard')
+            return redirect('user_dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
             logger.warning("Authentication failed for username: %s", username)
@@ -52,3 +56,22 @@ def logout_view(request):
     else:
         messages.error(request, 'Please use the logout button to log out.')
         return redirect('dashboard')
+
+def admin_dashboard(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return redirect('user_dashboard')
+    return render(request, 'admin_dashboard.html')
+
+def user_dashboard(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    if request.user.is_superuser:
+        return redirect('admin_dashboard')
+    return render(request, 'user_dashboard.html')
+
+def dashboard(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    if request.user.is_superuser:
+        return redirect('admin_dashboard')
+    return redirect('user_dashboard')

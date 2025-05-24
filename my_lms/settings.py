@@ -92,3 +92,4 @@ MESSAGE_TAGS = {
 
 LOGIN_URL = 'login'  # Redirects unauthenticated users to login
 LOGIN_REDIRECT_URL = 'dashboard'  # Default redirect after login
+LOGOUT_REDIRECT_URL = 'landing'  # Redirect after logout
