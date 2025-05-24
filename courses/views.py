@@ -63,3 +63,12 @@ def edit_lesson(request, lesson_id):
     else:
         form = LessonForm(instance=lesson)
     return render(request, 'courses/edit_lesson.html', {'form': form})
+
+@login_required
+def delete_lesson(request, lesson_id):
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    if request.method == 'POST':
+        lesson.delete()
+        messages.success(request, f'Lesson "{lesson.title}" deleted successfully!')
+        return redirect('lesson_list')
+    return render(request, 'courses/delete_lesson.html', {'lesson': lesson})
