@@ -1,17 +1,11 @@
-from django.urls import path
-from . import views
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
-# URL patterns for user authentication and dashboards
-# Note: Root dashboard ('dashboard/') is defined in my_lms/urls.py
-urlpatterns = [
-    # Authentication routes
-    path('login/', views.login_view, name='login'),  # User login page
-    path('register/', views.register_view, name='register'),  # User registration page
-    path('logout/', views.logout_view, name='logout'),  # User logout (POST-only, redirects to landing)
+def landing_view(request):
+    """Render the public landing page for BeriS LMS."""
+    return render(request, 'landing.html')
 
-    # Dashboard routes
-    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),  # Admin-only dashboard (superusers)
-    path('user-dashboard/', views.user_dashboard, name='user_dashboard'),  # User dashboard (non-superusers)
-
-    # Add future routes here (e.g., profile, password reset)
-]
+@login_required
+def dashboard_view(request):
+    """Render the general dashboard, redirecting to admin or user dashboard based on role."""
+    return render(request, 'dashboard.html', {'user': request.user})
