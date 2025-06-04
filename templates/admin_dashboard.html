@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'dashboard' %}">BeriS LMS</a>
@@ -15,86 +16,117 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'admin_dashboard' %}">Dashboard</a>
-                    </li>
-                    {% if user.is_superuser %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'create_course' %}">Create Course</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lesson_list' %}">Manage Lessons</a>
-                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{% url 'admin_dashboard' %}" aria-current="page">Dashboard</a>
+                        </li>
+                        {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'create_course' %}">Create Course</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'lesson_list' %}">Manage Lessons</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'lesson_list' %}">View Courses</a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger nav-link" aria-label="Logout">Logout</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">Register</a>
+                        </li>
                     {% endif %}
-                    <li class="nav-item">
-                        <form method="post" action="{% url 'logout' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="nav-link btn btn-link">Logout</button>
-                        </form>
-                    </li>
                 </ul>
             </div>
         </div>
     </nav>
+
+    <!-- Main Content -->
     <div class="container-fluid">
         <div class="row">
+            <!-- Sidebar -->
             <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
                 <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'admin_dashboard' %}">Dashboard</a>
-                        </li>
-                        {% if user.is_superuser %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'create_course' %}">Courses</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'lesson_list' %}">Lessons</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
-                        </li>
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link active" href="{% url 'admin_dashboard' %}" aria-current="page">Dashboard</a>
+                            </li>
+                            {% if user.is_superuser %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'create_course' %}">Manage Courses</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'lesson_list' %}">Manage Lessons</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
+                                </li>
+                            {% else %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'user_dashboard' %}">User Dashboard</a>
+                                </li>
+                            {% endif %}
                         {% endif %}
                     </ul>
                 </div>
             </nav>
+
+            <!-- Main Section -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Admin Dashboard</h1>
                 </div>
                 {% if messages %}
-                <div class="mb-3">
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="mb-3">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
                 {% endif %}
-                {% if user.is_superuser %}
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <h2>Welcome, {{ user.username }}!</h2>
-                                <p>Manage your LMS here. Create, edit, or delete courses and lessons.</p>
-                                <a href="{% url 'create_course' %}" class="btn btn-primary">Create New Course</a>
-                                <a href="{% url 'lesson_list' %}" class="btn btn-secondary">Manage Lessons</a>
-                                <a href="{% url 'admin:index' %}" class="btn btn-info">Admin Panel</a>
+                {% if user.is_authenticated %}
+                    {% if user.is_superuser %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h2>Welcome, {{ user.username }}!</h2>
+                                        <p>Manage your LMS by creating, editing, or deleting courses and lessons. Use the Admin Panel for user and system settings.</p>
+                                        <a href="{% url 'create_course' %}" class="btn btn-primary" aria-label="Create a new course">Create New Course</a>
+                                        <a href="{% url 'lesson_list' %}" class="btn btn-secondary" aria-label="Manage lessons">Manage Lessons</a>
+                                        <a href="{% url 'admin:index' %}" class="btn btn-info" aria-label="Access admin panel">Admin Panel</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    {% else %}
+                        <div class="alert alert-danger" role="alert">
+                            Access denied. This page is for administrators only.
+                            <a href="{% url 'user_dashboard' %}" class="alert-link">Go to User Dashboard</a>.
+                        </div>
+                    {% endif %}
                 {% else %}
-                <div class="alert alert-danger" role="alert">
-                    Access denied. This page is for administrators only.
-                    <a href="{% url 'user_dashboard' %}" class="alert-link">Go to User Dashboard</a>.
-                </div>
+                    <div class="alert alert-warning" role="alert">
+                        Please <a href="{% url 'login' %}" class="alert-link">log in</a> to access this page.
+                    </div>
                 {% endif %}
             </main>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,16 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lessons | BeriS LMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .lesson-card { margin-bottom: 20px; }
-        .lesson-actions { margin-top: 10px; }
-        .lesson-actions a, .lesson-actions button { margin-right: 10px; }
-    </style>
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
 </head>
 <body>
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">BeriS LMS</a>
+            <a class="navbar-brand" href="{% url 'landing' %}">BeriS LMS</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -22,24 +20,28 @@
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                            {% if user.is_superuser %}
+                                <a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a>
+                            {% else %}
+                                <a class="nav-link" href="{% url 'user_dashboard' %}">Dashboard</a>
+                            {% endif %}
                         </li>
                         {% if user.is_superuser %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'create_course' %}">Create Course</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'lesson_list' %}">Manage Lessons</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'create_course' %}">Create Course</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="{% url 'lesson_list' %}" aria-current="page">Manage Lessons</a>
+                            </li>
                         {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'lesson_list' %}">View Courses</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="{% url 'lesson_list' %}" aria-current="page">View Courses</a>
+                            </li>
                         {% endif %}
                         <li class="nav-item">
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}
-                                <button type="submit" class="nav-link btn btn-link">Logout</button>
+                                <button type="submit" class="btn btn-outline-danger nav-link" aria-label="Logout">Logout</button>
                             </form>
                         </li>
                     {% else %}
@@ -54,95 +56,122 @@
             </div>
         </div>
     </nav>
+
+    <!-- Main Content -->
     <div class="container-fluid">
         <div class="row">
+            <!-- Sidebar -->
             <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
                 <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
                         {% if user.is_authenticated %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                                {% if user.is_superuser %}
+                                    <a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a>
+                                {% else %}
+                                    <a class="nav-link" href="{% url 'user_dashboard' %}">Dashboard</a>
+                                {% endif %}
                             </li>
                             {% if user.is_superuser %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'create_course' %}">Manage Courses</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link active" href="{% url 'lesson_list' %}">Manage Lessons</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
-                            </li>
-                            {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link active" href="{% url 'lesson_list' %}">Courses & Lessons</a>
-                            </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
+                                </li>
                             {% endif %}
                         {% endif %}
                     </ul>
                 </div>
             </nav>
+
+            <!-- Main Section -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Lessons</h1>
                 </div>
                 {% if messages %}
-                <div class="mb-3">
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="mb-3">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
                 {% endif %}
                 {% if user.is_authenticated %}
                     {% if user.is_superuser %}
-                    <a href="{% url 'create_lesson' %}" class="btn btn-primary mb-3">Add Lesson</a>
+                        <a href="{% url 'create_lesson' %}" class="btn btn-primary mb-3" aria-label="Create new lesson">Add Lesson</a>
                     {% endif %}
                     {% if page_obj.object_list %}
                         <div class="row">
                             {% for lesson in page_obj.object_list %}
-                            <div class="col-md-4">
-                                <div class="card lesson-card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ lesson.title }}</h5>
-                                        <p class="card-text">Course: {{ lesson.course.title }}</p>
-                                        <p class="card-text">{{ lesson.content|truncatewords:20 }}</p>
-                                        <div class="lesson-actions">
-                                            <a href="{% url 'view_lesson' lesson.id %}" class="btn btn-sm btn-info" aria-label="View lesson: {{ lesson.title }}">View</a>
-                                            {% if user.is_superuser %}
-                                            <a href="{% url 'edit_lesson' lesson.id %}" class="btn btn-sm btn-primary" aria-label="Edit lesson: {{ lesson.title }}">Edit</a>
-                                            <form method="post" action="{% url 'delete_lesson' lesson.id %}" style="display:inline;">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this lesson?');" aria-label="Delete lesson: {{ lesson.title }}">Delete</button>
-                                            </form>
-                                            {% endif %}
+                                <div class="col-md-4">
+                                    <div class="card lesson-card" aria-describedby="lesson-{{ lesson.id }}-desc">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ lesson.title }}</h5>
+                                            <p class="card-text">Course: {{ lesson.course.title }}</p>
+                                            <p class="card-text" id="lesson-{{ lesson.id }}-desc">{{ lesson.content|truncatewords:20 }}</p>
+                                            <div class="lesson-actions">
+                                                <a href="{% url 'view_lesson' lesson.id %}" class="btn btn-sm btn-info" aria-label="View lesson: {{ lesson.title }}">View</a>
+                                                {% if user.is_superuser %}
+                                                    <a href="{% url 'edit_lesson' lesson.id %}" class="btn btn-sm btn-primary" aria-label="Edit lesson: {{ lesson.title }}">Edit</a>
+                                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-{{ lesson.id }}" aria-label="Delete lesson: {{ lesson.title }}">Delete</button>
+                                                    <!-- Delete Modal -->
+                                                    <div class="modal fade" id="deleteModal-{{ lesson.id }}" tabindex="-1" aria-labelledby="deleteModalLabel-{{ lesson.id }}" aria-hidden="true">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="deleteModalLabel-{{ lesson.id }}">Confirm Deletion</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    Are you sure you want to delete the lesson "{{ lesson.title }}"?
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                    <form method="post" action="{% url 'delete_lesson' lesson.id %}" style="display:inline;">
+                                                                        {% csrf_token %}
+                                                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                             {% endfor %}
                         </div>
                         <nav aria-label="Lesson pagination">
                             <ul class="pagination justify-content-center mt-4">
                                 {% if page_obj.has_previous %}
-                                    <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
-                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1" aria-label="First page">First</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous page">Previous</a>
+                                    </li>
                                 {% endif %}
-                                <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                                <li class="page-item disabled">
+                                    <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                                </li>
                                 {% if page_obj.has_next %}
-                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
-                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next page">Next</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last page">Last</a>
+                                    </li>
                                 {% endif %}
                             </ul>
                         </nav>
                     {% else %}
                         <div class="alert alert-info" role="alert">
                             {% if user.is_superuser %}
-                            No lessons available. <a href="{% url 'create_lesson' %}" class="alert-link">Create a lesson</a> to get started.
+                                No lessons available. <a href="{% url 'create_lesson' %}" class="alert-link">Create a lesson</a> to get started.
                             {% else %}
-                            No lessons available. Check back later for new courses.
+                                No lessons available. Check back later for new courses.
                             {% endif %}
                         </div>
                     {% endif %}
@@ -154,6 +183,7 @@
             </main>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

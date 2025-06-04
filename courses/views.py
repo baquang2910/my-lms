@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage
 from .models import Lesson, Course
 from .forms import LessonForm, CourseForm
 import logging
@@ -20,7 +20,7 @@ def create_lesson(request):
     courses = Course.objects.all()
     if not courses:
         messages.error(request, 'No courses available. Please create a course first.')
-        logger.warning("No courses available for lesson creation by user %s from IP %s", 
+        logger.warning("No courses available for lesson creation by user %s from IP %s",
                       request.user.username, request.META.get('REMOTE_ADDR', 'unknown'))
         return redirect('create_course')
 
@@ -30,14 +30,14 @@ def create_lesson(request):
             if form.is_valid():
                 lesson = form.save()
                 messages.success(request, f'Lesson "{lesson.title}" created successfully!')
-                logger.info("Lesson %s created by user %s from IP %s", 
-                           lesson.title, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'))
+                logger.info("Lesson %s (ID: %s) created by user %s from IP %s",
+                           lesson.title, lesson.id, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'))
                 return redirect('lesson_list')
             else:
                 messages.error(request, 'Please correct the errors below.')
         except Exception as e:
             messages.error(request, 'An error occurred while creating the lesson.')
-            logger.error("Error creating lesson by user %s from IP %s: %s", 
+            logger.error("Error creating lesson by user %s from IP %s: %s",
                         request.user.username, request.META.get('REMOTE_ADDR', 'unknown'), str(e))
     else:
         form = LessonForm()
@@ -49,13 +49,17 @@ def lesson_list(request):
     if request.user.is_superuser:
         lessons = Lesson.objects.all().order_by('-created_at')
     else:
-        # Regular users see only lessons from courses they can access
-        # Placeholder: assumes courses are public or user is enrolled
+        # Non-admins see only lessons from public courses
         lessons = Lesson.objects.filter(course__is_public=True).order_by('-created_at')
+        logger.info("Non-admin user %s accessed public lessons from IP %s",
+                    request.user.username, request.META.get('REMOTE_ADDR', 'unknown'))
     
     paginator = Paginator(lessons, 10)
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
     return render(request, 'courses/lesson_list.html', {'page_obj': page_obj, 'paginator': paginator})
 
 @login_required
@@ -68,14 +72,14 @@ def create_course(request):
             if form.is_valid():
                 course = form.save()
                 messages.success(request, f'Course "{course.title}" created successfully!')
-                logger.info("Course %s created by user %s from IP %s", 
-                           course.title, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'))
+                logger.info("Course %s (ID: %s) created by user %s from IP %s",
+                           course.title, course.id, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'))
                 return redirect('lesson_list')
             else:
                 messages.error(request, 'Please correct the errors below.')
         except Exception as e:
             messages.error(request, 'An error occurred while creating the course.')
-            logger.error("Error creating course by user %s from IP %s: %s", 
+            logger.error("Error creating course by user %s from IP %s: %s",
                         request.user.username, request.META.get('REMOTE_ADDR', 'unknown'), str(e))
     else:
         form = CourseForm()
@@ -92,15 +96,15 @@ def edit_lesson(request, lesson_id):
             if form.is_valid():
                 form.save()
                 messages.success(request, f'Lesson "{lesson.title}" updated successfully!')
-                logger.info("Lesson %s updated by user %s from IP %s", 
-                           lesson.title, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'))
+                logger.info("Lesson %s (ID: %s) updated by user %s from IP %s",
+                           lesson.title, lesson.id, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'))
                 return redirect('lesson_list')
             else:
                 messages.error(request, 'Please correct the errors below.')
         except Exception as e:
             messages.error(request, 'An error occurred while updating the lesson.')
-            logger.error("Error updating lesson %s by user %s from IP %s: %s", 
-                        lesson.title, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'), str(e))
+            logger.error("Error updating lesson %s (ID: %s) by user %s from IP %s: %s",
+                        lesson.title, lesson.id, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'), str(e))
     else:
         form = LessonForm(instance=lesson)
     return render(request, 'courses/edit_lesson.html', {'form': form, 'lesson': lesson})
@@ -113,25 +117,28 @@ def delete_lesson(request, lesson_id):
     if request.method == 'POST':
         try:
             lesson_title = lesson.title
+            lesson_id = lesson.id
             lesson.delete()
             messages.success(request, f'Lesson "{lesson_title}" deleted successfully!')
-            logger.info("Lesson %s deleted by user %s from IP %s", 
-                       lesson_title, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'))
+            logger.info("Lesson %s (ID: %s) deleted by user %s from IP %s",
+                       lesson_title, lesson_id, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'))
             return redirect('lesson_list')
         except Exception as e:
             messages.error(request, 'An error occurred while deleting the lesson.')
-            logger.error("Error deleting lesson %s by user %s from IP %s: %s", 
-                        lesson.title, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'), str(e))
+            logger.error("Error deleting lesson %s (ID: %s) by user %s from IP %s: %s",
+                        lesson.title, lesson.id, request.user.username, request.META.get('REMOTE_ADDR', 'unknown'), str(e))
     return render(request, 'courses/delete_lesson.html', {'lesson': lesson})
 
 @login_required
 def view_lesson(request, lesson_id):
     """View a lesson's content (available to all authenticated users)."""
     lesson = get_object_or_404(Lesson, id=lesson_id)
-    # Placeholder: check if user has access (e.g., enrolled or course is public)
+    # Non-admins can only view lessons from public courses
     if not lesson.course.is_public and not request.user.is_superuser:
         messages.error(request, 'You do not have access to this lesson.')
-        logger.warning("User %s attempted to access lesson %s without permission from IP %s", 
-                      request.user.username, lesson.title, request.META.get('REMOTE_ADDR', 'unknown'))
+        logger.warning("User %s attempted to access lesson %s (ID: %s) without permission from IP %s",
+                      request.user.username, lesson.title, lesson.id, request.META.get('REMOTE_ADDR', 'unknown'))
         return redirect('lesson_list')
+    logger.info("User %s viewed lesson %s (ID: %s) from IP %s",
+                request.user.username, lesson.title, lesson.id, request.META.get('REMOTE_ADDR', 'unknown'))
     return render(request, 'courses/view_lesson.html', {'lesson': lesson})

@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'courses',
     'ckeditor',
     'storages',
+    'widget_tweaks',  # Template filters for form styling
 ]
 
 MIDDLEWARE = [
@@ -76,17 +77,17 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'UTC'  # Using UTC for consistency across environments
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# Static files (served locally in dev, collected to staticfiles/ in production)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'  # Hashes static files for caching
 
-# AWS S3 Storage
+# AWS S3 Storage (used for Lesson.file if configured in .env)
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
@@ -94,6 +95,15 @@ AWS_S3_REGION_NAME = 'ap-southeast-2'
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com' if AWS_STORAGE_BUCKET_NAME else None
 AWS_S3_FILE_OVERWRITE = False
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage' if AWS_STORAGE_BUCKET_NAME else 'django.core.files.storage.FileSystemStorage'
+
+# CKEditor configuration
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        'height': 300,
+        'width': '100%',
+    },
+}
 
 # Messages (Bootstrap-compatible)
 MESSAGE_TAGS = {
@@ -122,27 +132,27 @@ SECURE_HSTS_PRELOAD = True
 
 # Logging
 LOGGING = {
-    'version': 1,  # Integer, not string
+    'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': 'INFO',
+            'level': 'INFO' if DEBUG else 'WARNING',  # Less verbose in production
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': 'INFO' if DEBUG else 'WARNING',
     },
     'loggers': {
         'users': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'INFO' if DEBUG else 'WARNING',
             'propagate': False,
         },
         'courses': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'INFO' if DEBUG else 'WARNING',
             'propagate': False,
         },
     },

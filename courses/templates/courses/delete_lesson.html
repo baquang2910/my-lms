@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delete Lesson | BeriS LMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
 </head>
 <body>
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">BeriS LMS</a>
+            <a class="navbar-brand" href="{% url 'landing' %}">BeriS LMS</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -17,24 +20,28 @@
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                            {% if user.is_superuser %}
+                                <a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a>
+                            {% else %}
+                                <a class="nav-link" href="{% url 'user_dashboard' %}">Dashboard</a>
+                            {% endif %}
                         </li>
                         {% if user.is_superuser %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'create_course' %}">Create Course</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'lesson_list' %}">Manage Lessons</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'create_course' %}">Create Course</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="{% url 'lesson_list' %}" aria-current="page">Manage Lessons</a>
+                            </li>
                         {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'lesson_list' %}">View Courses</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'lesson_list' %}">View Courses</a>
+                            </li>
                         {% endif %}
                         <li class="nav-item">
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}
-                                <button type="submit" class="nav-link btn btn-link">Logout</button>
+                                <button type="submit" class="btn btn-outline-danger nav-link" aria-label="Logout">Logout</button>
                             </form>
                         </li>
                     {% else %}
@@ -49,71 +56,83 @@
             </div>
         </div>
     </nav>
+
+    <!-- Main Content -->
     <div class="container-fluid">
         <div class="row">
+            <!-- Sidebar -->
             <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
                 <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
                         {% if user.is_authenticated %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                                {% if user.is_superuser %}
+                                    <a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a>
+                                {% else %}
+                                    <a class="nav-link" href="{% url 'user_dashboard' %}">Dashboard</a>
+                                {% endif %}
                             </li>
                             {% if user.is_superuser %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'create_course' %}">Manage Courses</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link active" href="{% url 'lesson_list' %}">Manage Lessons</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
-                            </li>
-                            {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'lesson_list' %}">Courses & Lessons</a>
-                            </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
+                                </li>
                             {% endif %}
                         {% endif %}
                     </ul>
                 </div>
             </nav>
+
+            <!-- Main Section -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Delete Lesson: {{ lesson.title }}</h1>
                 </div>
                 {% if messages %}
-                <div class="mb-3">
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="mb-3">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
                 {% endif %}
-                {% if user.is_authenticated %}
-                    {% if user.is_superuser %}
-                    <div class="alert alert-warning" role="alert">
-                        Are you sure you want to delete the lesson "{{ lesson.title }}" from the course "{{ lesson.course.title }}"? This action cannot be undone.
+                {% if user.is_authenticated and user.is_superuser %}
+                    <div class="alert alert-warning" role="alert" id="delete-warning" aria-describedby="delete-warning">
+                        <p>Are you sure you want to delete the lesson "{{ lesson.title }}" from the course "{{ lesson.course.title }}"? This action cannot be undone.</p>
                     </div>
-                    <form method="post" class="mb-4">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger me-2" onclick="return confirm('Are you sure you want to delete this lesson?');" aria-label="Delete lesson: {{ lesson.title }}">Delete</button>
-                        <a href="{% url 'lesson_list' %}" class="btn btn-secondary">Cancel</a>
-                    </form>
-                    {% else %}
-                    <div class="alert alert-danger" role="alert">
-                        Access denied. Only administrators can delete lessons. <a href="{% url 'lesson_list' %}" class="alert-link">View courses</a>.
+                    <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteModal" aria-label="Delete lesson: {{ lesson.title }}">Delete</button>
+                    <a href="{% url 'lesson_list' %}" class="btn btn-secondary" aria-label="Cancel lesson deletion">Cancel</a>
+                    <!-- Delete Modal -->
+                    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete the lesson "{{ lesson.title }}"? This action cannot be undone.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel deletion">Cancel</button>
+                                    <form method="post" action="{% url 'delete_lesson' lesson.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger" aria-label="Confirm lesson deletion">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
                 {% else %}
                     <div class="alert alert-warning" role="alert">
-                        Please <a href="{% url 'login' %}" class="alert-link">log in</a> to access this page.
+                        Please <a href="{% url 'login' %}" class="alert-link">log in</a> as an administrator to delete lessons.
                     </div>
                 {% endif %}
             </main>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
