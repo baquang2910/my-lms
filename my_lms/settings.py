@@ -122,11 +122,12 @@ SECURE_HSTS_PRELOAD = True
 
 # Logging
 LOGGING = {
-    'version': '1',
+    'version': 1,  # Integer, not string
     'disable_existing_loggers': False,
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'level': 'INFO',
         },
     },
     'root': {
@@ -135,6 +136,11 @@ LOGGING = {
     },
     'loggers': {
         'users': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'courses': {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
