@@ -16,14 +16,16 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a>
+                        <a class="nav-link active" href="{% url 'admin_dashboard' %}">Dashboard</a>
                     </li>
+                    {% if user.is_superuser %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'create_course' %}">Create Course</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'lesson_list' %}">Manage Lessons</a>
                     </li>
+                    {% endif %}
                     <li class="nav-item">
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
@@ -42,6 +44,7 @@
                         <li class="nav-item">
                             <a class="nav-link active" href="{% url 'admin_dashboard' %}">Dashboard</a>
                         </li>
+                        {% if user.is_superuser %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'create_course' %}">Courses</a>
                         </li>
@@ -51,6 +54,7 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
                         </li>
+                        {% endif %}
                     </ul>
                 </div>
             </nav>
@@ -58,6 +62,17 @@
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Admin Dashboard</h1>
                 </div>
+                {% if messages %}
+                <div class="mb-3">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if user.is_superuser %}
                 <div class="row">
                     <div class="col-md-12">
                         <div class="card">
@@ -66,10 +81,17 @@
                                 <p>Manage your LMS here. Create, edit, or delete courses and lessons.</p>
                                 <a href="{% url 'create_course' %}" class="btn btn-primary">Create New Course</a>
                                 <a href="{% url 'lesson_list' %}" class="btn btn-secondary">Manage Lessons</a>
+                                <a href="{% url 'admin:index' %}" class="btn btn-info">Admin Panel</a>
                             </div>
                         </div>
                     </div>
                 </div>
+                {% else %}
+                <div class="alert alert-danger" role="alert">
+                    Access denied. This page is for administrators only.
+                    <a href="{% url 'user_dashboard' %}" class="alert-link">Go to User Dashboard</a>.
+                </div>
+                {% endif %}
             </main>
         </div>
     </div>

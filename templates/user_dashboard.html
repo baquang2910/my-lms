@@ -15,18 +15,27 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'user_dashboard' %}">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lesson_list' %}">View Courses</a>
-                    </li>
-                    <li class="nav-item">
-                        <form method="post" action="{% url 'logout' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="nav-link btn btn-link">Logout</button>
-                        </form>
-                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{% url 'user_dashboard' %}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'lesson_list' %}">View Courses</a>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-link">Logout</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">Register</a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -36,12 +45,14 @@
             <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
                 <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'user_dashboard' %}">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'lesson_list' %}">Courses & Lessons</a>
-                        </li>
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link active" href="{% url 'user_dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'lesson_list' %}">Courses & Lessons</a>
+                            </li>
+                        {% endif %}
                     </ul>
                 </div>
             </nav>
@@ -49,17 +60,39 @@
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">User Dashboard</h1>
                 </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <h2>Welcome, {{ user.username }}!</h2>
-                                <p>Explore your enrolled courses and lessons.</p>
-                                <a href="{% url 'lesson_list' %}" class="btn btn-primary">View Courses</a>
+                {% if messages %}
+                <div class="mb-3">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if user.is_authenticated %}
+                    {% if user.is_superuser %}
+                    <div class="alert alert-info" role="alert">
+                        You are an admin. <a href="{% url 'admin_dashboard' %}" class="alert-link">Go to Admin Dashboard</a>.
+                    </div>
+                    {% else %}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h2>Welcome, {{ user.username }}!</h2>
+                                    <p>Explore and learn from courses created by administrators.</p>
+                                    <a href="{% url 'lesson_list' %}" class="btn btn-primary">View Courses</a>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                {% else %}
+                <div class="alert alert-warning" role="alert">
+                    Please <a href="{% url 'login' %}" class="alert-link">log in</a> to access your dashboard.
                 </div>
+                {% endif %}
             </main>
         </div>
     </div>

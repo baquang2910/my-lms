@@ -16,23 +16,32 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                        <a class="nav-link active" href="{% url 'dashboard' %}">Dashboard</a>
                     </li>
-                    {% if user.is_superuser %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'create_course' %}">Create Course</a>
-                    </li>
+                    {% if user.is_authenticated %}
+                        {% if user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'create_course' %}">Create Course</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'lesson_list' %}">Manage Lessons</a>
+                        </li>
+                        {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'lesson_list' %}">View Courses</a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-link">Logout</button>
+                            </form>
+                        </li>
                     {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lesson_list' %}">View Courses</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        </li>
                     {% endif %}
-                    <li class="nav-item">
-                        <form method="post" action="{% url 'logout' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="nav-link btn btn-link">Logout</button>
-                        </form>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -45,20 +54,22 @@
                         <li class="nav-item">
                             <a class="nav-link active" href="{% url 'dashboard' %}">Dashboard</a>
                         </li>
-                        {% if user.is_superuser %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'create_course' %}">Manage Courses</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'lesson_list' %}">Manage Lessons</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
-                        </li>
-                        {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'lesson_list' %}">Courses & Lessons</a>
-                        </li>
+                        {% if user.is_authenticated %}
+                            {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'create_course' %}">Manage Courses</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'lesson_list' %}">Manage Lessons</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
+                            </li>
+                            {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'lesson_list' %}">Courses & Lessons</a>
+                            </li>
+                            {% endif %}
                         {% endif %}
                     </ul>
                 </div>
@@ -67,6 +78,17 @@
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Dashboard</h1>
                 </div>
+                {% if messages %}
+                <div class="mb-3">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if user.is_authenticated %}
                 <div class="row">
                     <div class="col-md-12">
                         <div class="card">
@@ -74,14 +96,15 @@
                                 <h2>Welcome, {{ user.username }}!</h2>
                                 <p>
                                     {% if user.is_superuser %}
-                                    Manage your courses and lessons.
+                                    Manage your courses and lessons as an administrator.
                                     {% else %}
-                                    Explore your enrolled courses and lessons.
+                                    Explore and learn from courses created by administrators.
                                     {% endif %}
                                 </p>
                                 {% if user.is_superuser %}
                                 <a href="{% url 'create_course' %}" class="btn btn-primary">Create Course</a>
                                 <a href="{% url 'lesson_list' %}" class="btn btn-secondary">Manage Lessons</a>
+                                <a href="{% url 'admin:index' %}" class="btn btn-info">Admin Panel</a>
                                 {% else %}
                                 <a href="{% url 'lesson_list' %}" class="btn btn-primary">View Courses</a>
                                 {% endif %}
@@ -89,6 +112,11 @@
                         </div>
                     </div>
                 </div>
+                {% else %}
+                <div class="alert alert-warning" role="alert">
+                    Please <a href="{% url 'login' %}" class="alert-link">log in</a> to access your dashboard.
+                </div>
+                {% endif %}
             </main>
         </div>
     </div>
